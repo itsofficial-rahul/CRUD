@@ -1,4 +1,5 @@
 import "./App.css";
+import Pagination from "@mui/material/Pagination";
 import { PlusOutlined } from "@ant-design/icons";
 import {
   Avatar,
@@ -18,6 +19,20 @@ function App() {
   const [data, setData] = useState([]);
   const [theme, setTheme] = useState(true);
   const [editItemId, setEditItemID] = useState("");
+  const [show, setshow] = useState(5);
+  const [counter, setcounter] = useState(1);
+  const [pag, setpag] = useState({
+    start: 0,
+    end: show,
+  });
+  const changePag = (start, end) => {
+    setpag({ start: start, end: end });
+  };
+  useEffect(() => {
+    const value = show * counter;
+
+    changePag(value - show, value);
+  }, [counter]);
   const getData = useCallback(async () => {
     let result = await axios.get("https://jsonplaceholder.typicode.com/users");
 
@@ -34,6 +49,7 @@ function App() {
     name: "",
     username: "",
     email: "",
+    image: "",
   });
   const [visible, setVisible] = useState(false);
 
@@ -53,7 +69,6 @@ function App() {
       alert("fill all filed");
       return;
     } else if (editItemId) {
-      console.log("run");
       setData(
         data.map((item) => {
           if (item.id == editItemId) {
@@ -84,6 +99,7 @@ function App() {
         name: "",
         username: "",
         email: "",
+        image: "",
       });
     }
   };
@@ -100,8 +116,9 @@ function App() {
 
   // function for put editdata in input field
 
+  console.log(newUserData);
+
   const handleEditItem = (id, name, username, email) => {
-    console.log(name, username, email);
     setVisible(true);
     setEditItemID(id);
     setNewUserData({
@@ -141,8 +158,9 @@ function App() {
         <div className="allInputField">
           <input
             type="file"
-            // onChange={handleChange}
-
+            onChange={(e) =>
+              setNewUserData({ ...newUserData, image: e.target.value })
+            }
             accept="image/*"
           />
 
@@ -207,7 +225,7 @@ function App() {
           {data.length == 0 ? (
             <Empty description={false} />
           ) : (
-            data.map((item, index) => {
+            data.slice(pag.start, pag.end).map((item, index) => {
               return (
                 <tr key={index}>
                   <td>{index + 1}</td>
@@ -246,6 +264,19 @@ function App() {
           )}
         </tbody>
       </table>
+      <Pagination
+        variant="outlined"
+        size="large"
+        shape="rounded"
+        className="pagenitionCss"
+        onChange={(event, value) => setcounter(value)}
+        count={
+          +Math.fround(
+            data.length == 10 ? data.length / 5 : data.length / 5 + 1
+          ).toFixed(0)
+        }
+        color="secondary"
+      />
     </div>
   );
 }
